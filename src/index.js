@@ -104,7 +104,7 @@ async function getGubaCount(code = "301366", page = 1) {
       OuterCode: data.bar_info?.OuterCode || "",
       ShowCode: data.bar_info?.ShowCode || "",
       ShortName: data.bar_info?.ShortName || "",
-      QMarket: data.bar_info?.QMarket || "",
+      QMarket: data.bar_info?.QMarket,
       QCode: data.bar_info?.QCode || "",
     }
   }
