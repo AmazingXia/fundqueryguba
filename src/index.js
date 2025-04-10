@@ -15,6 +15,18 @@ async function handleRequest(request) {
   const url = new URL(request.url);
   const { searchParams } = url;
 
+  // 处理 OPTIONS 预检请求
+  if (request.method === "OPTIONS") {
+    return new Response(null, {
+      status: 204,
+      headers: {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type",
+      },
+    });
+  }
+
   // 获取参数 `code` 和 `days`，默认值：code=000158, days=5
   const code = searchParams.get("code") || "000158";
   const days = parseInt(searchParams.get("days") || "5", 10);
@@ -23,16 +35,25 @@ async function handleRequest(request) {
     res.str = Object.keys(res.info).map((key) => `${key}: ${res.info[key]}`).join("\n");
 
     console.log('res===>', res);
-    return Response.json(res)
-
-		// return new Response(JSON.stringify(res), {
-    //   headers: { "Content-Type": "application/json" },
-    // });
+   // 返回 JSON 响应，并添加 CORS 头
+   return new Response(JSON.stringify(res), {
+    headers: {
+      "Content-Type": "application/json",
+      "Access-Control-Allow-Origin": "*",  // 允许所有域访问（你可以改成指定域名）
+      "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type",
+    },
+  });
   } catch (error) {
-		console.log('error===>', error);
+    console.log('error===>', error);
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type",
+      },
     });
   }
 }
@@ -75,12 +96,16 @@ async function getGubaCount(code = "301366", page = 1) {
   const response = await fetch(apiUrl, { method: "GET" });
   if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
   const data = await response.json();
+  const list = (data.re || []).filter(item => ![1, 2, 3, 11].includes(item.post_type));
+
   return {
-    list: data.re || [],
+    list,
     bar_info: {
       OuterCode: data.bar_info?.OuterCode || "",
       ShowCode: data.bar_info?.ShowCode || "",
       ShortName: data.bar_info?.ShortName || "",
+      QMarket: data.bar_info?.QMarket || "",
+      QCode: data.bar_info?.QCode || "",
     }
   }
 }
